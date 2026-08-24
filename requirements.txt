@@ -1,0 +1,9 @@
+streamlit
+folium
+streamlit-folium
+ultralytics
+opencv-python-headless
+ortools
+Pillow
+requests
+numpy

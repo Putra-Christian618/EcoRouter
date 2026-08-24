@@ -1,0 +1,17 @@
+# Datasets (Large image & CSV folders)
+Box Dataset/
+olist dataset/
+
+# Training artifacts & runs
+runs/
+
+# Pretrained base weights
+yolo11n.pt
+yolo26n.pt
+
+# IDE settings & temporary caches
+.vscode/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
