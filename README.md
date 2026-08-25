@@ -55,6 +55,6 @@ Follow these minimalist steps to run the prototype locally using Docker Compose:
    Wait until the terminal displays the "running" status. Open your web browser and access the following link: [Application Localhost](http://localhost:8501/)
 
 ## Dataset & Model
-1. Packet Detection Dataset: The model was fine-tuned locally using the public "Warehouse Delivery Box Detection Dataset," employing aggressive data augmentation (Mosaic, Mixup, HSV) to prevent overfitting to lighting variations.
-2. Logistics Dataset: A catalog of weight, volume, and coordinate profiles, simulated using the Olist Brazilian E-Commerce Dataset following rigorous modification and cleaning.
+1. Packet Detection Dataset: The model was fine-tuned locally using the public "Warehouse Delivery Box Detection Dataset," from Kaggle employing aggressive data augmentation (Mosaic, Mixup, HSV) to prevent overfitting to lighting variations.
+2. Logistics Dataset: A catalog of weight, volume, and coordinate profiles, simulated using the Olist Brazilian E-Commerce Dataset from Kaggle following rigorous modification and cleaning.
 3. AI Model: Pre-trained YOLOv11n, fine-tuned for 100 epochs utilizing CUDA acceleration in a local WSL environment.
