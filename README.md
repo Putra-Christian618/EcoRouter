@@ -1,17 +1,16 @@
-# EcoRouter AI: Payload-Aware Logistics
+# EcoRouter AI
 
-**Kategori Inovasi:** Smart Logistics  
+**Inovation Category:** Smart Logistics  
 
-EcoRouter AI adalah program (*Minimum Viable Product*) sistem manajemen kurir yang dirancang untuk mengatasi inefisiensi konsumsi bahan bakar pada rute jarak pendek dengan muatan berat. Berbeda dengan sistem perutean konvensional yang hanya mencari jarak terpendek (*shortest path*), EcoRouter menggunakan fungsi objektif **Ton-Kilometer**. Sistem ini memastikan kendaraan berat tidak menahan muatan maksimal dalam waktu lama, sekaligus mengotomatisasi pendataan gudang melalui *Computer Vision* dan mengeliminasi proses *re-handling* kurir dengan instruksi muat LIFO (*Last In, First Out*).
-
+EcoRouter AI is a courier management system (Minimum Viable Product) designed to address fuel consumption inefficiencies on short-haul routes involving heavy loads. Unlike conventional routing systems that merely seek the shortest distance, EcoRouter employs a **Ton-Kilometer** objective function. The system ensures heavy vehicles do not carry maximum loads for extended periods, while also automating warehouse data capture via Computer Vision and eliminating courier re-handling through LIFO (Last In, First Out) loading instructions.
 ---
 
-## Fitur Utama (MVP Scope)
-Sistem ini berfokus pada alur interaksi inti yang sinkron (Input Pengguna $\rightarrow$ Output AI) tanpa *background jobs* atau arsitektur *database* terdistribusi yang kompleks:
-1. **Visual Ingestion (Input AI):** Pengguna memindai kargo melalui kamera langsung (*webcam*) atau unggah fail gambar. Model *Computer Vision* secara otomatis menghitung jumlah paket.
-2. **Ton-Kilometer Routing Engine (Proses AI):** Berdasarkan jumlah paket, sistem menarik metadata fisik (kg & cm³) dari pangkalan data dan mengkalkulasi rute paling hemat bahan bakar menggunakan algoritma *Capacitated Vehicle Routing Problem* (CVRP).
-3. **Frictionless Unloading (Output):** Mencetak urutan muat barang (*loading sequence*) secara otomatis menggunakan prinsip LIFO.
-4. **Interactive Telemetry:** Dasbor *real-time* yang menampilkan persentase efisiensi bahan bakar, konversi penghematan biaya (IDR), dan visualisasi peta rute komparatif.
+## Main Feature (MVP Scope)
+This system focuses on the core synchronous interaction flow (User Input → AI Output) without background jobs or complex distributed database architectures:
+1. **Visual Ingestion (AI input):** Users scan the cargo using a live camera (webcam) or by uploading an image file. A computer vision model automatically counts the number of packages.
+2. **Ton-Kilometer Routing Engine (AI Process):** Based on the number of packages, the system retrieves physical metadata (kg & cm³) from the database and calculates the most fuel-efficient route using the *Capacitated Vehicle Routing Problem* (CVRP) algorithm.
+3. **Frictionless Unloading (Output):** Automatically generate the cargo loading sequence using the LIFO principle.
+4. **Interactive Telemetry:** A real-time dashboard displaying fuel efficiency percentage, cost savings conversion (IDR), and comparative route map visualizations.
 
 ---
 
@@ -19,43 +18,43 @@ Sistem ini berfokus pada alur interaksi inti yang sinkron (Input Pengguna $\righ
 *   **Frontend / Antarmuka:** Streamlit, Folium (Interactive Mapping)
 *   **Backend / Integrasi:** Python 3.12, Requests (OSRM API Integration)
 *   **Model AI & Algoritma:** 
-    *   Ultralytics YOLOv11n (*Headless*) untuk *Object Detection*.
-    *   Google OR-Tools untuk optimasi matematis jarak dan muatan.
-    *   Haversine Formula (sebagai *offline fail-safe/fallback*).
+    *   Ultralytics YOLOv11n (*Headless*) for *Object Detection*.
+    *   Google OR-Tools for the mathematical optimization of distance and load.
+    *   Haversine Formula (as an offline fail-safe/fallback).
 
 ---
 
-## Arsitektur Sistem Global
-EcoRouter menggunakan pendekatan modular yang dieksekusi secara sinkron dalam satu alur *pipeline* *end-to-end*:
-1. **Fase Visi Komputer:** Gambar kargo dikirim ke model YOLOv11n yang dimuat di dalam memori untuk mendeteksi *bounding box*. Jumlah kotak dihitung dan diteruskan ke modul *data wrangling*.
-2. **Fase Ingesti Basis Data (*Cache Memory*):** Sistem tidak membebani *server* dengan pemanggilan *database* eksternal. Angka hitungan YOLO memicu ekstraksi $N$ data metadata logistik (berat, volume, destinasi Jabodetabek) dari modifikasi *Olist E-Commerce Dataset* yang telah disimpan ke dalam *in-memory cache*.
-3. **Fase Optimasi Rute:** Koordinat dikirim ke OSRM API untuk mendapatkan matriks jarak nyata. Matriks ini dimasukkan ke *Cost Evaluator* Google OR-Tools yang telah dimodifikasi dengan penalti beban linier. Hasil rute optimum dikembalikan ke *Frontend* Streamlit untuk divisualisasikan.
+## Global System Architecture
+EcoRouter employs a modular approach executed synchronously within a single end-to-end pipeline:
+1. **Computer Vision Phase:** Cargo images are sent to the YOLOv11n model loaded in memory to detect bounding boxes. The number of boxes is calculated and passed to the data wrangling module.
+2. **Database Ingestion Phase (Cache Memory):** The system avoids burdening the server with external database calls. The YOLO detection count triggers the extraction of $N$ logistical metadata records (weight, volume, Jabodetabek destination) from a modified version of the *Olist E-Commerce Dataset* stored in the in-memory cache.
+3. **Route Optimization Phase:** Coordinates are sent to the OSRM API to obtain a real-world distance matrix. This matrix is ​​fed into the Google OR-Tools *Cost Evaluator*, which has been modified to include a linear load penalty. The resulting optimal route is returned to the Streamlit *frontend* for visualization.
 
 ---
 
 ## Prerequisites
-Untuk menjalankan aplikasi ini secara lokal di mesin Anda, pastikan Anda telah memasang:
-*   **Docker** (versi 20.10.0 atau lebih baru)
-*   **Docker Compose** (versi v2 atau lebih baru)
-*   *Catatan: Sistem ini menggunakan OSRM API publik dan algoritma Haversine luring, sehingga **TIDAK** membutuhkan konfigurasi fail `.env` atau API Key rahasia apa pun.*
+To run this application locally on your machine, ensure you have installed:
+*   **Docker** (version 20.10.0 or later)
+*   **Docker Compose** (version v2 or later)
+*   *Note: This system uses the public OSRM API and an offline Haversine algorithm, so it does **NOT** require a `.env` file configuration or any secret API keys.*
 
 ---
 
-## Setup Guide / Cara Menjalankan Aplikasi
-Ikuti langkah-langkah minimalis berikut untuk menjalankan purwarupa secara lokal menggunakan *Docker Compose*:
+## Setup Guide
+Follow these minimalist steps to run the prototype locally using Docker Compose:
 
-1. **Kloning Repositori:**
+1. **Cloning a Repository:**
    ```bash
    git clone git clone https://github.com/Putra-Christian618/EcoRouter.git
    cd Project1
-2. **Jalankan Kontainer:**
-   Jalankan perintah berikut untuk mengunduh semua dependencies (Streamlit, PyTorch, OR-Tools) dan menyalakan server:
+2. **Run Container:**
+   Run the following command to download all dependencies (Streamlit, PyTorch, OR-Tools) and start the server:
    ```bash
    docker compose up --build
-3. **Akses Aplikasi:**
-   Tunggu hingga terminal menampilkan status running. Buka peramban (web browser) Anda dan akses tautan berikut: [Localhost Aplikasi](http://localhost:8501/)
+4. **App Access:**
+   Wait until the terminal displays the "running" status. Open your web browser and access the following link: [Localhost Aplikasi](http://localhost:8501/)
 
 ## Dataset & Model
-1. Dataset Deteksi Paket: Model dilatih (fine-tuning) secara lokal menggunakan "Warehouse Delivery Box Detection Dataset" publik, dengan menerapkan augmentasi data agresif (Mosaic, Mixup, HSV) untuk mencegah overfitting pada variasi pencahayaan.
-2. Dataset Logistik: Katalog profil berat, volume, dan koordinat disimulasikan menggunakan modifikasi dan pembersihan ketat dari Olist Brazilian E-Commerce Dataset.
-3. Model Al: Pre-trained YOLOv11n, dilatih ulang (fine-tuned) selama 100 epochs memanfaatkan akselerasi CUDA pada lingkungan WSL lokal.
+1. Packet Detection Dataset: The model was fine-tuned locally using the public "Warehouse Delivery Box Detection Dataset," employing aggressive data augmentation (Mosaic, Mixup, HSV) to prevent overfitting to lighting variations.
+2. Logistics Dataset: A catalog of weight, volume, and coordinate profiles, simulated using the Olist Brazilian E-Commerce Dataset following rigorous modification and cleaning.
+3. AI Model: Pre-trained YOLOv11n, fine-tuned for 100 epochs utilizing CUDA acceleration in a local WSL environment.
