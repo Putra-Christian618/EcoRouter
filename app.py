@@ -391,7 +391,7 @@ mode = st.sidebar.radio(
     captions=[
         "Two fixed edge-case scenarios",
         "Randomized fleet from the regional pool",
-        "Camera + file upload ingestion",
+        "File upload ingestion",
     ],
     label_visibility="collapsed",
 )
@@ -437,31 +437,21 @@ elif mode == "B · Dynamic Sandbox":
 elif mode == "C · Visual Ingestion":
     eyebrow("Visual Ingestion", first=True)
     with st.container(border=True):
-        st.info("Provide an image of the cargo bay — EcoRouter counts packages automatically.")
+        st.info("Upload an image of the cargo bay — EcoRouter counts packages automatically.")
         
-        # Adding a radio button to cleanly toggle between Upload and Camera inputs
-        input_method = st.radio(
-            "Choose image source:", 
-            ["📷 Live Camera", "📁 Upload File"], 
-            horizontal=True
-        )
-        
-        # Variable to hold whichever image source the user provides
-        img_data = None
-        
-        if input_method == "📷 Live Camera":
-            img_data = st.camera_input("Scan the cargo bay", label_visibility="collapsed")
-        else:
-            img_data = st.file_uploader("Upload a local image", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
+        # Hanya menampilkan opsi upload file
+        img_data = st.file_uploader("Upload a local image", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
 
     if img_data is not None:
         model = load_yolo_model()
         if model is None:
             st.error("Detection model not found. Place the trained weights at `models/best.pt`, then reload the app.")
         else:
-            # PIL Image can read the buffer regardless of whether it came from the camera or file uploader
-            img = Image.open(img_data)
-            results = model.predict(source=img, conf=0.2, verbose=False)
+            # Menggunakan PIL untuk membaca file yang diunggah
+            img = Image.open(img_data).convert("RGB")
+            
+            # Confidence sedikit diturunkan agar lebih toleran terhadap foto resolusi rendah
+            results = model.predict(source=img, conf=0.3, verbose=False)
             box_count = len(results[0].boxes)
 
             res_plotted = results[0].plot()
