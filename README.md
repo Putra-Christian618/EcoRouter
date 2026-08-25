@@ -52,7 +52,7 @@ Follow these minimalist steps to run the prototype locally using Docker Compose:
    ```bash
    docker compose up --build
 4. **App Access:**
-   Wait until the terminal displays the "running" status. Open your web browser and access the following link: [Localhost Aplikasi](http://localhost:8501/)
+   Wait until the terminal displays the "running" status. Open your web browser and access the following link: [Application Localhost](http://localhost:8501/)
 
 ## Dataset & Model
 1. Packet Detection Dataset: The model was fine-tuned locally using the public "Warehouse Delivery Box Detection Dataset," employing aggressive data augmentation (Mosaic, Mixup, HSV) to prevent overfitting to lighting variations.
