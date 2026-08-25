@@ -14,19 +14,15 @@ try:
 except ImportError:
     st.error("Missing dependencies — install everything in requirements.txt, then restart the app.")
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
+
 st.set_page_config(page_title="EcoRouter AI", page_icon="🧭", layout="wide")
-FUEL_PRICE_IDR = 16000  # Pertamax price per liter (IDR)
+FUEL_PRICE_IDR = 16000
 
-# Route + brand palette
-COLOR_ECO = "#35D69B"     # optimized / EcoRouter route
-COLOR_BEACON = "#FF8A3D"  # baseline / standard route
 
-# ============================================================
-# STYLE — "Night Dispatch Console" theme
-# ============================================================
+COLOR_ECO = "#35D69B"
+COLOR_BEACON = "#FF8A3D"
+
+
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -141,14 +137,12 @@ st.markdown("""
 
 
 def eyebrow(text, first=False, live=False):
-    """Renders a small tracked-uppercase section label with the waypoint tick."""
     cls = "eyebrow first" if first else "eyebrow"
     prefix = '<span class="pulse-dot"></span>' if live else ""
     st.markdown(f'<div class="{cls}">{prefix}{text}</div>', unsafe_allow_html=True)
 
 
 def brand_mark(size=54, stroke_width=2.2):
-    """Inline SVG wordmark: a route bending between a baseline node and an optimized node."""
     return f'''<svg width="{size}" height="{size}" viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg">
         <rect x="1.5" y="1.5" width="51" height="51" rx="14" fill="#121B17" stroke="#24352C" stroke-width="1"/>
         <path d="M15 37 C15 30 17 22 25 19 C31 17 35 20 39 17" fill="none" stroke="{COLOR_ECO}" stroke-width="{stroke_width}" stroke-linecap="round"/>
@@ -159,15 +153,12 @@ def brand_mark(size=54, stroke_width=2.2):
 
 @st.cache_resource
 def load_yolo_model():
-    """Caches the model in VRAM to prevent Out-Of-Memory crashes on button clicks."""
     try:
         return YOLO("models/best.pt")
     except Exception:
         return None
 
-# ============================================================
-# PHASE 3: EXACT FUEL ROUTING ENGINE
-# ============================================================
+
 class ExactFuelRouter:
     def __init__(self, coords, weights_kg, volumes_cm3, vehicle_max_vol=1000000):
         self.coords = coords
@@ -178,7 +169,6 @@ class ExactFuelRouter:
         self.dist_matrix = self._get_osrm_matrix()
 
     def _get_osrm_matrix(self):
-        """Fetches live street data with a fallback to offline Haversine math."""
         coords_str = ";".join(self.coords)
         url = f"http://router.project-osrm.org/table/v1/driving/{coords_str}?annotations=distance"
         try:
@@ -192,7 +182,6 @@ class ExactFuelRouter:
         return self._generate_fallback_matrix()
 
     def _generate_fallback_matrix(self):
-        """Offline fail-safe: Calculates curved-earth distance with a 1.5 road tortuosity multiplier."""
         matrix = []
         points = [tuple(map(float, c.split(','))) for c in self.coords]
         for lon1, lat1 in points:
@@ -260,32 +249,28 @@ class ExactFuelRouter:
         route_arr.append(manager.IndexToNode(index))
         return route_arr
 
-# ============================================================
-# UI COMPONENTS
-# ============================================================
+
 def plot_routes_on_map(coords, std_route, opt_route):
-    """Generates an interactive Folium map comparing the two routes with parallel rendering."""
     lat_lons = [[float(c.split(',')[1]), float(c.split(',')[0])] for c in coords]
     m = folium.Map(location=lat_lons[0], zoom_start=11, tiles="CartoDB dark_matter")
 
-    # 1. Render Delivery Nodes
+
     for i, (lat, lon) in enumerate(lat_lons):
         color = 'white' if i == 0 else 'cadetblue'
         label = "Depot" if i == 0 else f"Stop {i}"
         folium.Marker([lat, lon], popup=label, tooltip=label, icon=folium.Icon(color=color)).add_to(m)
 
-    # 2. Render Standard Route (Shifted slightly so it runs parallel)
-    OFFSET = 0.00030  # Approx 30 meters
+
+    OFFSET = 0.00030
     shifted_std_route = [[lat_lons[idx][0] + OFFSET, lat_lons[idx][1] + OFFSET] for idx in std_route]
     folium.PolyLine(shifted_std_route, color=COLOR_BEACON, weight=3, opacity=0.85, dash_array='5, 6', tooltip="Standard Route").add_to(m)
 
-    # 3. Render Optimized Route (Accurate to coordinates)
+
     folium.PolyLine([lat_lons[idx] for idx in opt_route], color=COLOR_ECO, weight=5, opacity=0.95, tooltip="EcoRouter Route").add_to(m)
 
     return m
 
 def execute_pipeline(coords, weights, volumes):
-    """Handles routing calculation and rendering the financial metric dashboard."""
     router = ExactFuelRouter(coords, weights, volumes)
     std_route = router.solve_greedy()
     opt_route = router.solve_exact_fuel()
@@ -294,12 +279,12 @@ def execute_pipeline(coords, weights, volumes):
         st.error("This load exceeds the vehicle's volume capacity. Remove a package or split the run across two trips.")
         return
 
-    # Calculate Fuel
+
     std_fuel = router.calculate_fuel(std_route)
     opt_fuel = router.calculate_fuel(opt_route)
     savings_pct = ((std_fuel - opt_fuel) / std_fuel) * 100 if std_fuel > 0 else 0
 
-    # Calculate Financials
+
     std_cost = std_fuel * FUEL_PRICE_IDR
     opt_cost = opt_fuel * FUEL_PRICE_IDR
     money_saved = std_cost - opt_cost
@@ -342,9 +327,6 @@ def execute_pipeline(coords, weights, volumes):
     )
 
 
-# ============================================================
-# HEADER
-# ============================================================
 st.markdown(f'''<div class="eco-header">
     <div class="eco-logo">{brand_mark(56, 2.4)}</div>
     <div>
@@ -354,7 +336,7 @@ st.markdown(f'''<div class="eco-header">
     </div>
 </div>''', unsafe_allow_html=True)
 
-# Expanded Jabodetabek Depots
+
 DEPOTS = {
     "Central Jakarta (Hub)": ("106.816666,-6.200000", 0, 0),
     "South Tangerang (Hub)": ("106.711400,-6.288600", 0, 0),
@@ -362,23 +344,21 @@ DEPOTS = {
     "Bekasi (Hub)": ("106.989600,-6.233600", 0, 0)
 }
 
-# Expanded 20-Point Jabodetabek Coordinate Pool
+
 MOCK_POOL = [
     ("106.825000,-6.210000", 15, 20000), ("106.835000,-6.215000", 25, 30000), 
     ("106.845000,-6.220000", 10, 15000), ("106.855000,-6.230000", 5, 10000),
     ("106.989600,-6.269000", 850, 400000), ("106.798300,-6.262500", 20, 15000),
     ("106.628800,-6.178300", 800, 400000), ("106.890000,-6.150000", 350, 300000),
     ("106.750000,-6.110000", 350, 300000), ("106.741000,-6.187300", 30, 15000),
-    ("106.797200,-6.597100", 45, 45000), ("106.806000,-6.598000", 120, 90000), # Bogor
-    ("106.900000,-6.160000", 55, 30000), ("106.890000,-6.370000", 210, 180000), # Kelapa Gading, Cibubur
-    ("106.738300,-6.106600", 12, 10000), ("106.650000,-6.300000", 500, 350000), # PIK, BSD
+    ("106.797200,-6.597100", 45, 45000), ("106.806000,-6.598000", 120, 90000),
+    ("106.900000,-6.160000", 55, 30000), ("106.890000,-6.370000", 210, 180000),
+    ("106.738300,-6.106600", 12, 10000), ("106.650000,-6.300000", 500, 350000),
     ("106.820000,-6.290000", 35, 20000), ("106.870000,-6.210000", 75, 50000), 
     ("107.010000,-6.250000", 600, 400000), ("106.720000,-6.200000", 18, 15000)
 ]
 
-# ============================================================
-# SIDEBAR
-# ============================================================
+
 st.sidebar.markdown(f'''<div class="eco-side-brand">
     {brand_mark(34, 2.6)}
     <div class="eco-side-brand-text"><strong>EcoRouter</strong><span>AI CONSOLE</span></div>
@@ -439,7 +419,7 @@ elif mode == "C · Visual Ingestion":
     with st.container(border=True):
         st.info("Upload an image of the cargo bay — EcoRouter counts packages automatically.")
         
-        # Hanya menampilkan opsi upload file
+
         img_data = st.file_uploader("Upload a local image", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
 
     if img_data is not None:
@@ -447,10 +427,10 @@ elif mode == "C · Visual Ingestion":
         if model is None:
             st.error("Detection model not found. Place the trained weights at `models/best.pt`, then reload the app.")
         else:
-            # Menggunakan PIL untuk membaca file yang diunggah
+
             img = Image.open(img_data).convert("RGB")
             
-            # Confidence sedikit diturunkan agar lebih toleran terhadap foto resolusi rendah
+
             results = model.predict(source=img, conf=0.3, verbose=False)
             box_count = len(results[0].boxes)
 
@@ -460,7 +440,7 @@ elif mode == "C · Visual Ingestion":
             if box_count > 0:
                 sample_size = min(box_count, len(MOCK_POOL))
                 selected = random.sample(MOCK_POOL, sample_size)
-                # Defaults to Central Jakarta for Visual Ingestion
+
                 depot = DEPOTS["Central Jakarta (Hub)"]
 
                 coords = [depot[0]] + [item[0] for item in selected]
